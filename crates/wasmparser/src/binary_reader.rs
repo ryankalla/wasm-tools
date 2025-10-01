@@ -378,7 +378,7 @@ impl<'a> BinaryReader<'a> {
     /// Reads a length-prefixed list of bytes from this reader and returns a
     /// new `BinaryReader` to read that list of bytes.
     pub fn read_reader(&mut self) -> Result<BinaryReader<'a>> {
-        let size = self.read_var_u32()? as usize;
+        let size = self.read_var_u64()? as usize;
         self.skip(|reader| {
             reader.read_bytes(size)?;
             Ok(())

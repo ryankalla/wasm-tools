@@ -100,7 +100,7 @@ pub struct Parser {
 enum State {
     Header,
     SectionStart,
-    FunctionBody { remaining: u32, len: u32 },
+    FunctionBody { remaining: u32, len: u64 },
 }
 
 /// A successful return payload from [`Parser::parse`].
@@ -227,7 +227,7 @@ pub enum Payload<'a> {
         /// This can be used in combination with [`Parser::skip_section`]
         /// where the caller will know how many bytes to skip before feeding
         /// bytes into `Parser` again.
-        size: u32,
+        size: u64,
     },
     /// An entry of the code section, a function, was parsed from a WebAssembly
     /// module.
@@ -736,7 +736,7 @@ impl Parser {
                     return Err(BinaryReaderError::new("malformed section id", id_pos));
                 }
                 let len_pos = reader.original_position();
-                let mut len = reader.read_var_u32()?;
+                let mut len = reader.read_var_u64()?;
 
                 // Test to make sure that this section actually fits within
                 // `Parser::max_size`. This doesn't matter for top-level modules
@@ -1230,7 +1230,7 @@ fn usize_to_u64(a: usize) -> u64 {
 /// to construct the section to return.
 fn section<'a, T>(
     reader: &mut BinaryReader<'a>,
-    len: u32,
+    len: u64,
     ctor: fn(BinaryReader<'a>) -> Result<T>,
     variant: fn(T) -> Payload<'a>,
 ) -> Result<Payload<'a>> {
@@ -1248,7 +1248,7 @@ fn section<'a, T>(
 /// Reads a section that is represented by a single uleb-encoded `u32`.
 fn single_item<'a, T>(
     reader: &mut BinaryReader<'a>,
-    len: u32,
+    len: u64,
     desc: &str,
 ) -> Result<(T, Range<usize>)>
 where
@@ -1279,7 +1279,7 @@ where
 /// what `*len` currently is.
 fn delimited<'a, T>(
     reader: &mut BinaryReader<'a>,
-    len: &mut u32,
+    len: &mut u64,
     f: impl FnOnce(&mut BinaryReader<'a>) -> Result<T>,
 ) -> Result<T> {
     let start = reader.original_position();
